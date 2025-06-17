@@ -25,6 +25,8 @@ public class TodoController {
     private final TodoService todoService;
     private final PaginationUtil paginationUtil;
 
+
+
     @GetMapping("/register")
     public String register_get(Model model) {
         model.addAttribute(new TodoDTO());
