@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="kr"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+</head>
+<body>
+<div class="d-flex vh-100 align-items-center justify-content-center">
+    <div class="container text-center">
+        <div class="row mb-4">
+            <div class="col h2">
+                TODO LIST
+            </div>
+        </div>
+        <div id="todo-container">
+            <div class="row mb-4" th:each="todo:${todoDTO}">
+                <div class="col-6 offset-3">
+                    <div class="card border-2 border-primary">
+                        <div class="card-header">
+                            <div class="row">
+                                <input type="hidden" th:value="${todo.id}">
+                                <div class="col-4 text-start" th:text="${todo.title}"></div>
+                                <div class="col" th:text="${#temporals.format(todo.reg_date, 'yyyy-MM-dd')}"></div>
+                                <div class="col" th:text="${#temporals.format(todo.last_update, 'yyyy-MM-dd')}"></div>
+                                <div class="col badge rounded-pill"
+                                     th:classappend="${todo.level == '1' ? 'text-bg-primary' : (todo.level == '2' ? 'text-bg-warning' : 'text-bg-danger')}"
+                                     th:text="${todo.level == '1' ? '보통' : (todo.level == '2' ? '중요' : '매우 중요')}"></div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-start" th:text="${todo.content}"></div>
+                        </div>
+                        <div class="card-footer text-body-secondary">
+                            <div class="d-flex">
+                                <div class="row">
+                                    <div class="col">
+                                        <a th:href="@{/todo/update(id=${todo.id})}" class="btn btn-outline-primary">수정</a>
+                                        <a th:href="@{/todo/delete(id=${todo.id}, page=${currentPage})}" class="btn btn-outline-danger">삭제</a>
+                                        <button type="button" class="btn btn-primary btn-modal-edit" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                                                th:attr="data-id=${todo.id},
+                                                        data-title=${todo.title},
+                                                        data-content=${todo.content},
+                                                        data-level=${todo.level}">
+                                            수정 ver.modal
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6 offset-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <ul class="pagination mt-3">
+            <!--        이전 페이지-->
+                        <li class="page-item" th:classappend="${currentPage == startPage}?'disabled'">
+                            <a class="page-link" th:href="@{/todo/list(page=${prevPage})}">&lt;</a>
+                        </li>
+            <!--        현재 페이지, 1씩 증가-->
+                        <li class="page-item" th:classappend="${page == currentPage}?'active'" th:each="page : ${#numbers.sequence(startPage, endPage, 1)}">
+                            <a class="page-link" th:href="@{/todo/list(page=${page})}" th:text="${page}"></a>
+                        </li>
+            <!--        다음 페이지-->
+                        <li class="page-item" th:classappend="${currentPage == lastPage}?'disabled'">
+                            <a class="page-link" th:href="@{/todo/list(page=${nextPage})}">&gt;</a>
+                        </li>
+                    </ul>
+                    <a href="/todo/register" class="btn btn-primary">TODO 추가</a>
+                    <button id="btn_modal_register" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        TODO 추가 ver.modal
+                    </button>
+                    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form id="modal_form" action="/todo/register" method="post">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">TODO 작성하기</h1>
+                                        <button id="btn_modal_close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" id="modal_id" name="id">
+                                        <div class="row">
+                                            <div class="col-10 offset-1">
+                                                <div class="mb-3">
+                                                    <label for="modal_title" class="form-label">제목</label>
+                                                    <input type="text" class="form-control" id="modal_title" name="title">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p id="modal_title_warning" style="display: none; color: red">제목을 작성해주세요</p>
+                                        <div class="row">
+                                            <div class="col-10 offset-1">
+                                                <div class="mb-3">
+                                                    <label for="modal_content" class="form-label">내용</label>
+                                                    <input type="text" class="form-control" id="modal_content" name="content">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p id="modal_content_warning" style="display: none; color: red">제목을 작성해주세요</p>
+                                        <div class="row">
+                                            <div class="col-10 offset-1">
+                                                <div class="mb-3">
+                                                    <label class="form-label">중요도</label>
+                                                    <select id="modal_level" class="form-select" aria-label="Default select example" name="level">
+                                                        <option value="1" selected>보통</option>
+                                                        <option value="2">중요</option>
+                                                        <option value="3">매우 중요</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button id="btn_modal_submit" type="submit" class="btn btn-primary">등록하기</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const btn_modal_register = document.getElementById('btn_modal_register');
+    const btn_modal_submit = document.getElementById('btn_modal_submit');
+    const btn_modal_close = document.getElementById('btn_modal_close');
+    const modal_id = document.getElementById('modal_id')
+    const modal_title = document.getElementById('modal_title');
+    const modal_content = document.getElementById('modal_content');
+    const modal_level = document.getElementById('modal_level');
+    const modal_form = document.getElementById('modal_form');
+    const modal_title_warning = document.getElementById('modal_title_warning')
+    const modal_content_warning = document.getElementById('modal_content_warning')
+    const todo_container = document.getElementById('todo-container');
+
+    btn_modal_register.addEventListener("click", () => {
+        btn_modal_submit.innerText = "등록하기";
+        modal_form.action = "/todo/register";
+    })
+
+    btn_modal_close.addEventListener("click", () => {
+        modal_id.value = "";
+        modal_title.value = "";
+        modal_content.value = "";
+        modal_level.value = '1';
+        modal_title_warning.style.display = "none";
+        modal_content_warning.style.display = "none";
+    })
+
+    todo_container.addEventListener("click", e => {
+        const target = e.target;
+
+        if (target.classList.contains('btn-modal-edit')) {
+            modal_id.value = target.getAttribute("data-id");
+            modal_title.value = target.getAttribute('data-title');
+            modal_content.value = target.getAttribute("data-content");
+            modal_level.value = target.getAttribute("data-level");
+            btn_modal_submit.innerText = "수정하기";
+            modal_form.action = "/todo/update";
+        }
+    })
+
+    modal_form.addEventListener("submit", e => {
+        console.log("flag")
+
+        let isValid = true;
+
+        if (modal_title.value === "") {
+            modal_title_warning.style.display = "block";
+            isValid = false;
+        } else {
+            modal_title_warning.style.display = "none";
+        }
+
+        // 내용 검사
+        if (modal_content.value === "") {
+            modal_content_warning.style.display = "block";
+            isValid = false;
+        } else {
+            modal_content_warning.style.display = "none";
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+        }
+    })
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO"
+        crossorigin="anonymous"></script>
+</body>
+</html>
